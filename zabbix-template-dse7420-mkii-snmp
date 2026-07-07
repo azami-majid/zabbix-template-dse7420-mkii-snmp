@@ -1,0 +1,1185 @@
+zabbix_export:
+  version: '7.4'
+  template_groups:
+    - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6001
+      name: Templates/Power
+
+  templates:
+    - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6002
+      template: Template DSE7420 MKII SNMP
+      name: Template DSE7420 MKII SNMP
+      description: DSE7420 MKII monitoring by SNMP v2c for Generator and Engine with dashboard.
+      groups:
+        - name: Templates/Power
+      macros:
+        - macro: '{$SNMP_COMMUNITY}'
+          value: CHANGE_ME
+        - macro: '{$DSE.NODATA}'
+          value: 10m
+        - macro: '{$DSE.BATT.MIN}'
+          value: '24'
+        - macro: '{$DSE.BATT.MAX}'
+          value: '30'
+        - macro: '{$DSE.ENG.SPEED.MIN}'
+          value: '500'
+        - macro: '{$DSE.ENG.SPEED.MAX}'
+          value: '1800'
+        - macro: '{$DSE.GEN.FREQ.MIN}'
+          value: '49'
+        - macro: '{$DSE.GEN.FREQ.MAX}'
+          value: '51'
+        - macro: '{$DSE.GEN.VOLT.MIN}'
+          value: '210'
+        - macro: '{$DSE.GEN.VOLT.MAX}'
+          value: '250'
+
+      items:
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6101
+          name: System description
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.1.0
+          key: dse.sysDescr
+          delay: 5m
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6102
+          name: System name
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.5.0
+          key: dse.sysName
+          delay: 5m
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6103
+          name: System uptime
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.3.0
+          key: dse.sysUpTime
+          delay: 1m
+          history: 90d
+          units: uptime
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6201
+          name: Engine key ID
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.3.1.1.1
+          key: dse.engine.keyid
+          delay: 5m
+          history: 90d
+          value_type: UNSIGNED
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6202
+          name: Engine battery voltage
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.3.1.7.1
+          key: dse.engine.battery.voltage
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: V
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.1'
+          triggers:
+            - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6501
+              expression: 'nodata(/Template DSE7420 MKII SNMP/dse.engine.battery.voltage,{$DSE.NODATA})=1'
+              name: 'DSE7420 MKII: no battery voltage data received'
+              priority: HIGH
+            - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6502
+              expression: 'last(/Template DSE7420 MKII SNMP/dse.engine.battery.voltage)<{$DSE.BATT.MIN}'
+              name: 'DSE7420 MKII: battery voltage low'
+              priority: AVERAGE
+            - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6503
+              expression: 'last(/Template DSE7420 MKII SNMP/dse.engine.battery.voltage)>{$DSE.BATT.MAX}'
+              name: 'DSE7420 MKII: battery voltage high'
+              priority: WARNING
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6203
+          name: Engine speed display
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.3.1.8.1
+          key: dse.engine.speed.display
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: rpm
+          triggers:
+            - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6504
+              expression: 'last(/Template DSE7420 MKII SNMP/dse.engine.speed.display)>{$DSE.ENG.SPEED.MAX}'
+              name: 'DSE7420 MKII: engine speed high'
+              priority: AVERAGE
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6204
+          name: Engine module oil pressure raw
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.3.1.87.1
+          key: dse.engine.module.oil.pressure.raw
+          delay: 30s
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6205
+          name: Engine module coolant temperature raw
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.3.1.88.1
+          key: dse.engine.module.coolant.temperature.raw
+          delay: 30s
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6206
+          name: Engine module RPM raw
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.3.1.89.1
+          key: dse.engine.module.rpm.raw
+          delay: 30s
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6207
+          name: Engine warning alarm raw
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.3.1.93.1
+          key: dse.engine.alarm.warning.raw
+          delay: 30s
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6208
+          name: Engine shutdown alarm raw
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.3.1.94.1
+          key: dse.engine.alarm.shutdown.raw
+          delay: 30s
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6209
+          name: Engine electrical trip alarm raw
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.3.1.95.1
+          key: dse.engine.alarm.electrical.raw
+          delay: 30s
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6301
+          name: Generator key ID
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.1.1
+          key: dse.generator.keyid
+          delay: 5m
+          history: 90d
+          value_type: UNSIGNED
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6302
+          name: Generator frequency
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.2.1
+          key: dse.generator.frequency
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: Hz
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.1'
+          triggers:
+            - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6505
+              expression: 'last(/Template DSE7420 MKII SNMP/dse.engine.speed.display)>{$DSE.ENG.SPEED.MIN} and last(/Template DSE7420 MKII SNMP/dse.generator.frequency)<{$DSE.GEN.FREQ.MIN}'
+              name: 'DSE7420 MKII: engine running but generator frequency low'
+              priority: AVERAGE
+            - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6506
+              expression: 'last(/Template DSE7420 MKII SNMP/dse.generator.frequency)>{$DSE.GEN.FREQ.MAX}'
+              name: 'DSE7420 MKII: generator frequency high'
+              priority: AVERAGE
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6303
+          name: Generator L1 voltage
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.3.1
+          key: dse.generator.l1.voltage
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: V
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.1'
+          triggers:
+            - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6507
+              expression: 'last(/Template DSE7420 MKII SNMP/dse.generator.l1.voltage)>{$DSE.GEN.VOLT.MAX}'
+              name: 'DSE7420 MKII: generator L1 voltage high'
+              priority: WARNING
+            - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6508
+              expression: 'last(/Template DSE7420 MKII SNMP/dse.generator.l1.voltage)>0 and last(/Template DSE7420 MKII SNMP/dse.generator.l1.voltage)<{$DSE.GEN.VOLT.MIN}'
+              name: 'DSE7420 MKII: generator L1 voltage low'
+              priority: WARNING
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6304
+          name: Generator L2 voltage
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.4.1
+          key: dse.generator.l2.voltage
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: V
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.1'
+          triggers:
+            - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6509
+              expression: 'last(/Template DSE7420 MKII SNMP/dse.generator.l2.voltage)>{$DSE.GEN.VOLT.MAX}'
+              name: 'DSE7420 MKII: generator L2 voltage high'
+              priority: WARNING
+            - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6510
+              expression: 'last(/Template DSE7420 MKII SNMP/dse.generator.l2.voltage)>0 and last(/Template DSE7420 MKII SNMP/dse.generator.l2.voltage)<{$DSE.GEN.VOLT.MIN}'
+              name: 'DSE7420 MKII: generator L2 voltage low'
+              priority: WARNING
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6305
+          name: Generator L3 voltage
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.5.1
+          key: dse.generator.l3.voltage
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: V
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.1'
+          triggers:
+            - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6511
+              expression: 'last(/Template DSE7420 MKII SNMP/dse.generator.l3.voltage)>{$DSE.GEN.VOLT.MAX}'
+              name: 'DSE7420 MKII: generator L3 voltage high'
+              priority: WARNING
+            - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6512
+              expression: 'last(/Template DSE7420 MKII SNMP/dse.generator.l3.voltage)>0 and last(/Template DSE7420 MKII SNMP/dse.generator.l3.voltage)<{$DSE.GEN.VOLT.MIN}'
+              name: 'DSE7420 MKII: generator L3 voltage low'
+              priority: WARNING
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6306
+          name: Generator L1 current
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.8.1
+          key: dse.generator.l1.current
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: A
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.1'
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6307
+          name: Generator L2 current
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.9.1
+          key: dse.generator.l2.current
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: A
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.1'
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6308
+          name: Generator L3 current
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.10.1
+          key: dse.generator.l3.current
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: A
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.1'
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6309
+          name: Generator total watts
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.17.1
+          key: dse.generator.total.watts
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: W
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6310
+          name: Generator total VA
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.24.1
+          key: dse.generator.total.va
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: VA
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6311
+          name: Generator total VAr
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.25.1
+          key: dse.generator.total.var
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: VAr
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6312
+          name: Generator total power factor raw
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.29.1
+          key: dse.generator.total.pf.raw
+          delay: 30s
+          history: 90d
+          value_type: CHAR
+          trends: '0'
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6313
+          name: Generator total phase
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.35.1
+          key: dse.generator.total.phase
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: UNSIGNED
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6314
+          name: Generator average LN voltage
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.39.1
+          key: dse.generator.avg.ln.voltage
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: V
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.1'
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6315
+          name: Generator average current
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.41385.1.4.1.2.1.47.1
+          key: dse.generator.avg.current
+          delay: 30s
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: A
+          preprocessing:
+            - type: MULTIPLIER
+              parameters:
+                - '0.1'
+
+        - uuid: 9e5d0c8c5a6d4e6d8a0b2c3d4e5f6401
+          name: DSE SNMP trap raw
+          type: SNMP_TRAP
+          key: snmptrap.fallback
+          history: 90d
+          value_type: LOG
+          trends: '0'
+
+      dashboards:
+        - uuid: d4b3f0b6f5de4a26b9a5b69a7d110001
+          name: 'DSE7420 Full Overview'
+          pages:
+            - name: 'Overview'
+              widgets:
+                - type: gauge
+                  name: 'Battery voltage'
+                  width: '12'
+                  height: '4'
+                  hide_header: 'YES'
+                  fields:
+                    - type: STRING
+                      name: description
+                      value: 'Battery voltage'
+                    - type: INTEGER
+                      name: desc_size
+                      value: '10'
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.engine.battery.voltage
+                    - type: INTEGER
+                      name: scale_size
+                      value: '10'
+                    - type: STRING
+                      name: units
+                      value: V
+
+                - type: gauge
+                  name: 'Engine speed'
+                  x: '12'
+                  width: '12'
+                  height: '4'
+                  hide_header: 'YES'
+                  fields:
+                    - type: STRING
+                      name: description
+                      value: 'Engine speed'
+                    - type: INTEGER
+                      name: desc_size
+                      value: '10'
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.engine.speed.display
+                    - type: INTEGER
+                      name: scale_size
+                      value: '10'
+                    - type: STRING
+                      name: units
+                      value: rpm
+
+                - type: gauge
+                  name: 'Generator frequency'
+                  x: '24'
+                  width: '12'
+                  height: '4'
+                  hide_header: 'YES'
+                  fields:
+                    - type: STRING
+                      name: description
+                      value: 'Generator frequency'
+                    - type: INTEGER
+                      name: desc_size
+                      value: '10'
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.frequency
+                    - type: INTEGER
+                      name: scale_size
+                      value: '10'
+                    - type: STRING
+                      name: units
+                      value: Hz
+
+                - type: gauge
+                  name: 'Generator total watts'
+                  x: '36'
+                  width: '12'
+                  height: '4'
+                  hide_header: 'YES'
+                  fields:
+                    - type: STRING
+                      name: description
+                      value: 'Generator total watts'
+                    - type: INTEGER
+                      name: desc_size
+                      value: '10'
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.total.watts
+                    - type: INTEGER
+                      name: scale_size
+                      value: '10'
+                    - type: STRING
+                      name: units
+                      value: W
+
+                - type: item
+                  name: 'System name'
+                  x: '48'
+                  width: '12'
+                  height: '4'
+                  hide_header: 'YES'
+                  fields:
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.sysName
+                    - type: INTEGER
+                      name: show.0
+                      value: '1'
+                    - type: INTEGER
+                      name: show.1
+                      value: '2'
+                    - type: INTEGER
+                      name: value_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: value_size
+                      value: '30'
+
+                - type: item
+                  name: 'System uptime'
+                  x: '60'
+                  width: '12'
+                  height: '4'
+                  hide_header: 'YES'
+                  fields:
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.sysUpTime
+                    - type: INTEGER
+                      name: show.0
+                      value: '1'
+                    - type: INTEGER
+                      name: show.1
+                      value: '2'
+                    - type: INTEGER
+                      name: value_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: value_size
+                      value: '30'
+
+                - type: svggraph
+                  name: 'Generator voltages'
+                  y: '4'
+                  width: '36'
+                  height: '5'
+                  fields:
+                    - type: STRING
+                      name: ds.0.color.0
+                      value: 1A7C11
+                    - type: INTEGER
+                      name: ds.0.dataset_type
+                      value: '0'
+                    - type: INTEGER
+                      name: ds.0.fill
+                      value: '5'
+                    - type: ITEM
+                      name: ds.0.itemids.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.l1.voltage
+                    - type: STRING
+                      name: ds.1.color.0
+                      value: F63100
+                    - type: INTEGER
+                      name: ds.1.dataset_type
+                      value: '0'
+                    - type: INTEGER
+                      name: ds.1.fill
+                      value: '5'
+                    - type: ITEM
+                      name: ds.1.itemids.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.l2.voltage
+                    - type: STRING
+                      name: ds.2.color.0
+                      value: 2774A4
+                    - type: INTEGER
+                      name: ds.2.dataset_type
+                      value: '0'
+                    - type: INTEGER
+                      name: ds.2.fill
+                      value: '5'
+                    - type: ITEM
+                      name: ds.2.itemids.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.l3.voltage
+                    - type: INTEGER
+                      name: legend_columns
+                      value: '3'
+                    - type: INTEGER
+                      name: legend_statistic
+                      value: '1'
+                    - type: STRING
+                      name: reference
+                      value: DSE01
+
+                - type: svggraph
+                  name: 'Generator currents'
+                  x: '36'
+                  y: '4'
+                  width: '36'
+                  height: '5'
+                  fields:
+                    - type: STRING
+                      name: ds.0.color.0
+                      value: 1A7C11
+                    - type: INTEGER
+                      name: ds.0.dataset_type
+                      value: '0'
+                    - type: INTEGER
+                      name: ds.0.fill
+                      value: '5'
+                    - type: ITEM
+                      name: ds.0.itemids.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.l1.current
+                    - type: STRING
+                      name: ds.1.color.0
+                      value: F63100
+                    - type: INTEGER
+                      name: ds.1.dataset_type
+                      value: '0'
+                    - type: INTEGER
+                      name: ds.1.fill
+                      value: '5'
+                    - type: ITEM
+                      name: ds.1.itemids.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.l2.current
+                    - type: STRING
+                      name: ds.2.color.0
+                      value: 2774A4
+                    - type: INTEGER
+                      name: ds.2.dataset_type
+                      value: '0'
+                    - type: INTEGER
+                      name: ds.2.fill
+                      value: '5'
+                    - type: ITEM
+                      name: ds.2.itemids.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.l3.current
+                    - type: INTEGER
+                      name: legend_columns
+                      value: '3'
+                    - type: INTEGER
+                      name: legend_statistic
+                      value: '1'
+                    - type: STRING
+                      name: reference
+                      value: DSE02
+
+                - type: svggraph
+                  name: 'Generator power'
+                  y: '9'
+                  width: '36'
+                  height: '5'
+                  fields:
+                    - type: STRING
+                      name: ds.0.color.0
+                      value: 1A7C11
+                    - type: INTEGER
+                      name: ds.0.dataset_type
+                      value: '0'
+                    - type: INTEGER
+                      name: ds.0.fill
+                      value: '5'
+                    - type: ITEM
+                      name: ds.0.itemids.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.total.watts
+                    - type: STRING
+                      name: ds.1.color.0
+                      value: F63100
+                    - type: INTEGER
+                      name: ds.1.dataset_type
+                      value: '0'
+                    - type: INTEGER
+                      name: ds.1.fill
+                      value: '5'
+                    - type: ITEM
+                      name: ds.1.itemids.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.total.va
+                    - type: STRING
+                      name: ds.2.color.0
+                      value: 2774A4
+                    - type: INTEGER
+                      name: ds.2.dataset_type
+                      value: '0'
+                    - type: INTEGER
+                      name: ds.2.fill
+                      value: '5'
+                    - type: ITEM
+                      name: ds.2.itemids.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.total.var
+                    - type: INTEGER
+                      name: legend_columns
+                      value: '3'
+                    - type: INTEGER
+                      name: legend_statistic
+                      value: '1'
+                    - type: STRING
+                      name: reference
+                      value: DSE03
+
+                - type: svggraph
+                  name: 'Engine and averages'
+                  x: '36'
+                  y: '9'
+                  width: '36'
+                  height: '5'
+                  fields:
+                    - type: STRING
+                      name: ds.0.color.0
+                      value: FFD54F
+                    - type: INTEGER
+                      name: ds.0.dataset_type
+                      value: '0'
+                    - type: INTEGER
+                      name: ds.0.fill
+                      value: '5'
+                    - type: ITEM
+                      name: ds.0.itemids.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.engine.battery.voltage
+                    - type: STRING
+                      name: ds.1.color.0
+                      value: 2774A4
+                    - type: INTEGER
+                      name: ds.1.dataset_type
+                      value: '0'
+                    - type: INTEGER
+                      name: ds.1.fill
+                      value: '5'
+                    - type: ITEM
+                      name: ds.1.itemids.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.engine.speed.display
+                    - type: STRING
+                      name: ds.2.color.0
+                      value: 0EC9AC
+                    - type: INTEGER
+                      name: ds.2.dataset_type
+                      value: '0'
+                    - type: INTEGER
+                      name: ds.2.fill
+                      value: '5'
+                    - type: ITEM
+                      name: ds.2.itemids.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.avg.ln.voltage
+                    - type: STRING
+                      name: ds.3.color.0
+                      value: FF465C
+                    - type: INTEGER
+                      name: ds.3.dataset_type
+                      value: '0'
+                    - type: INTEGER
+                      name: ds.3.fill
+                      value: '5'
+                    - type: ITEM
+                      name: ds.3.itemids.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.avg.current
+                    - type: INTEGER
+                      name: legend_columns
+                      value: '4'
+                    - type: INTEGER
+                      name: legend_statistic
+                      value: '1'
+                    - type: STRING
+                      name: reference
+                      value: DSE04
+
+                - type: item
+                  name: 'System description'
+                  y: '14'
+                  width: '24'
+                  height: '3'
+                  hide_header: 'YES'
+                  fields:
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.sysDescr
+                    - type: INTEGER
+                      name: show.0
+                      value: '1'
+                    - type: INTEGER
+                      name: show.1
+                      value: '2'
+                    - type: INTEGER
+                      name: value_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: value_size
+                      value: '18'
+
+                - type: item
+                  name: 'Engine key ID'
+                  x: '24'
+                  y: '14'
+                  width: '8'
+                  height: '3'
+                  hide_header: 'YES'
+                  fields:
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.engine.keyid
+                    - type: INTEGER
+                      name: show.0
+                      value: '1'
+                    - type: INTEGER
+                      name: show.1
+                      value: '2'
+                    - type: INTEGER
+                      name: value_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: value_size
+                      value: '22'
+
+                - type: item
+                  name: 'Generator key ID'
+                  x: '32'
+                  y: '14'
+                  width: '8'
+                  height: '3'
+                  hide_header: 'YES'
+                  fields:
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.keyid
+                    - type: INTEGER
+                      name: show.0
+                      value: '1'
+                    - type: INTEGER
+                      name: show.1
+                      value: '2'
+                    - type: INTEGER
+                      name: value_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: value_size
+                      value: '22'
+
+                - type: item
+                  name: 'Generator total phase'
+                  x: '40'
+                  y: '14'
+                  width: '8'
+                  height: '3'
+                  hide_header: 'YES'
+                  fields:
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.total.phase
+                    - type: INTEGER
+                      name: show.0
+                      value: '1'
+                    - type: INTEGER
+                      name: show.1
+                      value: '2'
+                    - type: INTEGER
+                      name: value_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: value_size
+                      value: '22'
+
+                - type: item
+                  name: 'Engine oil pressure raw'
+                  x: '48'
+                  y: '14'
+                  width: '12'
+                  height: '3'
+                  hide_header: 'YES'
+                  fields:
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.engine.module.oil.pressure.raw
+                    - type: INTEGER
+                      name: show.0
+                      value: '1'
+                    - type: INTEGER
+                      name: show.1
+                      value: '2'
+                    - type: INTEGER
+                      name: value_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: value_size
+                      value: '18'
+
+                - type: item
+                  name: 'Engine coolant raw'
+                  x: '60'
+                  y: '14'
+                  width: '12'
+                  height: '3'
+                  hide_header: 'YES'
+                  fields:
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.engine.module.coolant.temperature.raw
+                    - type: INTEGER
+                      name: show.0
+                      value: '1'
+                    - type: INTEGER
+                      name: show.1
+                      value: '2'
+                    - type: INTEGER
+                      name: value_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: value_size
+                      value: '18'
+
+                - type: item
+                  name: 'Engine RPM raw'
+                  y: '17'
+                  width: '12'
+                  height: '3'
+                  hide_header: 'YES'
+                  fields:
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.engine.module.rpm.raw
+                    - type: INTEGER
+                      name: show.0
+                      value: '1'
+                    - type: INTEGER
+                      name: show.1
+                      value: '2'
+                    - type: INTEGER
+                      name: value_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: value_size
+                      value: '18'
+
+                - type: item
+                  name: 'Warning alarm raw'
+                  x: '12'
+                  y: '17'
+                  width: '12'
+                  height: '3'
+                  hide_header: 'YES'
+                  fields:
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.engine.alarm.warning.raw
+                    - type: INTEGER
+                      name: show.0
+                      value: '1'
+                    - type: INTEGER
+                      name: show.1
+                      value: '2'
+                    - type: INTEGER
+                      name: value_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: value_size
+                      value: '18'
+
+                - type: item
+                  name: 'Shutdown alarm raw'
+                  x: '24'
+                  y: '17'
+                  width: '12'
+                  height: '3'
+                  hide_header: 'YES'
+                  fields:
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.engine.alarm.shutdown.raw
+                    - type: INTEGER
+                      name: show.0
+                      value: '1'
+                    - type: INTEGER
+                      name: show.1
+                      value: '2'
+                    - type: INTEGER
+                      name: value_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: value_size
+                      value: '18'
+
+                - type: item
+                  name: 'Electrical trip raw'
+                  x: '36'
+                  y: '17'
+                  width: '12'
+                  height: '3'
+                  hide_header: 'YES'
+                  fields:
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.engine.alarm.electrical.raw
+                    - type: INTEGER
+                      name: show.0
+                      value: '1'
+                    - type: INTEGER
+                      name: show.1
+                      value: '2'
+                    - type: INTEGER
+                      name: value_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: value_size
+                      value: '18'
+
+                - type: item
+                  name: 'PF raw'
+                  x: '48'
+                  y: '17'
+                  width: '12'
+                  height: '3'
+                  hide_header: 'YES'
+                  fields:
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: dse.generator.total.pf.raw
+                    - type: INTEGER
+                      name: show.0
+                      value: '1'
+                    - type: INTEGER
+                      name: show.1
+                      value: '2'
+                    - type: INTEGER
+                      name: value_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: value_size
+                      value: '18'
+
+                - type: item
+                  name: 'Trap raw'
+                  x: '60'
+                  y: '17'
+                  width: '12'
+                  height: '3'
+                  hide_header: 'YES'
+                  fields:
+                    - type: INTEGER
+                      name: desc_v_pos
+                      value: '0'
+                    - type: ITEM
+                      name: itemid.0
+                      value:
+                        host: 'Template DSE7420 MKII SNMP'
+                        key: snmptrap.fallback
+                    - type: INTEGER
+                      name: show.0
+                      value: '1'
+                    - type: INTEGER
+                      name: show.1
+                      value: '2'
+                    - type: INTEGER
+                      name: value_bold
+                      value: '0'
+                    - type: INTEGER
+                      name: value_size
+                      value: '18'
